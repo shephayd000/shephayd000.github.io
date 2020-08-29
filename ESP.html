@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<html>
+    <head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css" integrity="sha384-r4NyP46KrjDleawBgD5tp8Y7UzmLA05oM1iAEQ17CSuDqnUK2+k9luXQOfXJCJ4I" crossorigin="anonymous">
+    <style>
+        
+    </style>
+    </head>
+<!--circle = &#9898; square = &#9744; star = &#9734; -->
+    <body>
+        <div id="begin" class="container-fluid p-3 my-3 bg-success text-white">
+            <h1>Start</h1>
+        </div>
+        <div id="back" class="container-fluid p-3 my-3 bg-dark text-white" style="display: none;">
+            <h1>Take a Guess</h1>
+            <p>Click me</p>
+        </div>
+
+        <div id="front" class="container-fluid p-3 my-3 bg-primary text-white rotate-sm-l-90" style="display: none;">
+            <h1>Right Answer</h1>
+            <p class="display-6" id="sym"></p>
+        </div>
+        <div id="fin" class="container-fluid p-3 my-3 bg-primary text-white rotate-sm-l-90" style="display: none;">
+            <p class="display-6"></p>
+        </div>
+        <div>
+            <p id="rights">0 correct</p>
+        </div>
+    </body>
+
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/js/bootstrap.min.js" integrity="sha384-oesi62hOLfzrys4LxRF63OJCXdXDipiYWBnvTl9Y9/TRlw5xlKIEHpNyvvDShgf/" crossorigin="anonymous"></script>
+    
+    <script>
+        var right = 0;
+        var guessed = 0;
+        var SpeechRecognition = SpeechRecognition || webkitSpeechRecognition
+        var SpeechGrammarList = SpeechGrammarList || webkitSpeechGrammarList
+        var SpeechRecognitionEvent = SpeechRecognitionEvent || webkitSpeechRecognitionEvent
+        
+        var symbols = ['square', 'circle', 'star', 'waves', 'plus'];
+        var grammar = '#JSGF V1.0; grammar symbols; public <symbol> = ' + symbols.join(' | ') + ' ;'
+        
+        var recognition = new SpeechRecognition();
+        var speechRecognitionList = new SpeechGrammarList();
+        
+        speechRecognitionList.addFromString(grammar, 1);
+        recognition.grammars = speechRecognitionList;
+        recognition.continuous = false;
+        recognition.lang = 'en-US';
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        var diagnostic = $('.output');
+        var bg = $('html');
+        var hints = $('.hints');
+        
+        var msg = new SpeechSynthesisUtterance();
+        msg.volume = 1; 
+        msg.voice = window.speechSynthesis.getVoices()[2];
+        msg.voiceURI = 'native';
+
+        $( document ).ready(function() {
+            
+            
+            $("#front").click(function(){
+                msg.text = "Next";
+                window.speechSynthesis.speak(msg);
+                $("#front").hide();
+                $("#back").show();
+            });
+            $("#back").click(function(){
+                recognition.start();
+                console.log('Ready to recieve a symbol command');
+            });
+            $("#begin").click(function(){
+                $("#begin").hide();
+                $("#back").show();
+                msg.text = "Welcome to ESP tester. I'm going to test you for ESP. The other side of this card is a circle, plus, waves, square, or star. Clear your mind. When you're ready, click the card and say the name out loud.";
+                window.speechSynthesis.speak(msg);
+            });
+        });
+
+        recognition.onresult = function(event) {
+
+            var symbol = event.results[0][0].transcript;
+            diagnostic.textContent = 'Result received: ' + symbol + '.';
+            console.log('Result received: ' + symbol + '.');
+            console.log('Confidence: ' + event.results[0][0].confidence);
+            msg.text = "Correct!";
+            var val = Math.floor(Math.random() * 5);
+            guessed++;
+
+            if(val == 0){
+                if(symbol =="circle"){
+                    window.speechSynthesis.speak(msg);
+                    right++;
+                    var num = right.toString();
+                    $("#rights").text(num + " correct");
+                }
+                $("#sym").text("⚪"); //circle
+            }else if(val == 1){
+                if(symbol =="square"){
+                    window.speechSynthesis.speak(msg);
+                    right++;
+                    var num = right.toString();
+                    $("#rights").text(num + " correct");
+                }
+                $("#sym").text("☐"); //square
+            }else if(val == 2){
+                if(symbol =="star"){
+                    window.speechSynthesis.speak(msg);
+                    right++;
+                    var num = right.toString();
+                    $("#rights").text(num + " correct");
+                }
+                $("#sym").text("☆"); //star
+            }else if(val == 3){
+                if(symbol =="plus"){
+                    window.speechSynthesis.speak(msg);
+                    right++;
+                    var num = right.toString();
+                    $("#rights").text(num + " correct");
+                }
+                $("#sym").text("+");
+            }else{
+                if(symbol =="waves"){
+                    window.speechSynthesis.speak(msg);
+                    right++;
+                    var num = right.toString();
+                    $("#rights").text(num + " correct");
+                }
+                $("#sym").text("∭");
+            }
+            $("#back").hide();
+            if(guessed >= 25){
+                if(right >= 11){
+                    $("#fin").text("YOU HAVE ESP!!!!!!");
+                }else{
+                    $("#fin").html("Wow, this is a little embarrassing, but it looks like you don't really have, you know ESP,<br> but it's okay you're still cool.... I guess");
+                }
+                $("#fin").show();
+            }else{
+                $("#front").show();
+            }  
+        }
+    
+        recognition.onspeechend = function() {
+            recognition.stop();
+        }
+
+        recognition.onnomatch = function(event) {
+            diagnostic.textContent = "I didn't recognise that color.";
+        }
+
+        recognition.onerror = function(event) {
+            diagnostic.textContent = 'Error occurred in recognition: ' + event.error;
+        }
+    </script>
+</html>
